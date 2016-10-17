@@ -25,24 +25,17 @@ type GenericFunc struct {
 }
 
 // Call calls a dynamic function
-func (d *GenericFunc) Call(params ...interface{}) ([]interface{}, error) {
+func (d *GenericFunc) Call(params ...interface{}) []interface{} {
 	paramsIn := make([]reflect.Value, len(params))
 	for i, param := range params {
-		paramValue := reflect.ValueOf(param)
-		paramType := paramValue.Type()
-		if d.Cache.TypesIn[i] != genericType {
-			if !paramType.ConvertibleTo(d.Cache.TypesIn[i]) {
-				return nil, fmt.Errorf("GenericFunc.Call: params[%d] '%s' is not convertible to '%s'", i, paramType, d.Cache.TypesIn[i])
-			}
-		}
-		paramsIn[i] = paramValue
+		paramsIn[i] = reflect.ValueOf(param)
 	}
 	paramsOut := d.Cache.FnValue.Call(paramsIn)
 	interfaceOut := make([]interface{}, len(paramsOut))
 	for i, item := range paramsOut {
 		interfaceOut[i] = item.Interface()
 	}
-	return interfaceOut, nil
+	return interfaceOut
 }
 
 // New instantiates a new GenericFunc pointer

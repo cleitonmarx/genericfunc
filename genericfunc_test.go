@@ -73,22 +73,28 @@ func TestCall(t *testing.T) {
 			SimpleParamValidator(NewElemTypeSlice(new(int)), NewElemTypeSlice(new(int))),
 			"not a int",
 			9,
-			errors.New("GenericFunc.Call: params[0] 'string' is not convertible to 'int'"),
+			errors.New("reflect: Call using string as type int"),
 		},
 	}
 
 	for _, test := range tests {
-		dynaFunc, err := New(test.function, test.validationFunc)
-		if err != nil {
-			t.Errorf("expect error: nil, actual: %s", err)
-		}
-		result, err := dynaFunc.Call(test.fnParameter)
-		if !(err == test.exception || err.Error() == test.exception.Error()) {
-			t.Errorf("expect error: nil, actual: %s", err)
-		}
-		if result != nil && result[0] != test.result {
-			t.Errorf("expect result: %d, actual: %d", test.result, result[0])
-		}
+		func() {
+			defer func() {
+				r := recover()
+				if !(r == test.exception || r == test.exception.Error()) {
+					t.Errorf("expect error: nil, actual: %s", r)
+				}
+			}()
+			dynaFunc, err := New(test.function, test.validationFunc)
+			if err != nil {
+				t.Errorf("expect error: nil, actual: %s", err)
+			}
+			result := dynaFunc.Call(test.fnParameter)
+
+			if result != nil && result[0] != test.result {
+				t.Errorf("expect result: %d, actual: %d", test.result, result[0])
+			}
+		}()
 	}
 
 }
